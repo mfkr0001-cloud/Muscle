@@ -1,220 +1,549 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Muscle Legends Online</title>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;color:#f4f6fa;font:16px system-ui;touch-action:none}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;color:#f4f6fa;font:16px system-ui;touch-action:none}
 #world{position:fixed;inset:0;width:100%;height:100%;display:block;background:#202938}
 #hud{position:fixed;inset:0;pointer-events:none}
 .panel{pointer-events:auto;background:rgba(20,27,38,.94);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 16px 50px #0008;backdrop-filter:blur(10px)}
 #mainMenu{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;padding:clamp(18px,5vw,64px);background:linear-gradient(90deg,rgba(7,10,16,.88),rgba(7,10,16,.35) 55%,rgba(7,10,16,.05))}
-.menuCard{width:min(420px,100%);padding:28px}.logo{font-size:clamp(30px,5vw,48px);font-weight:950;line-height:.95;letter-spacing:-1.8px}.logo span{color:#9c83ff}
-.subtitle{color:#aab4c3;margin:12px 0 24px}button,input{width:100%;padding:13px 14px;margin:7px 0;border:0;border-radius:10px;font:inherit}
+.menuCard{width:min(420px,100%);padding:28px}
+.logo{font-size:clamp(30px,5vw,48px);font-weight:950;line-height:.95;letter-spacing:-1.8px}
+.logo span{color:#9c83ff}
+.subtitle{color:#aab4c3;margin:12px 0 24px}
+button,input{width:100%;padding:13px 14px;margin:7px 0;border:0;border-radius:10px;font:inherit}
 button{background:#7657f5;color:white;font-weight:800;cursor:pointer;touch-action:manipulation}
-button.secondary{background:#303b4c;color:#e9edf5}button:disabled{opacity:.55}
+button.secondary{background:#303b4c;color:#e9edf5}
+button:disabled{opacity:.55}
 input{background:#303b4c;color:white;outline:1px solid #ffffff12}
 #connection{font-size:13px;color:#ffc978;min-height:20px;margin-top:8px}
 #gameHud{position:absolute;inset:0;display:none;padding:18px;justify-content:space-between;align-items:flex-start}
-.stats{padding:14px 18px;min-width:190px}.stats b{font-size:22px}
-#hudButtons{display:flex;gap:8px;pointer-events:auto}#hudButtons button{width:auto;margin:0;padding:10px 14px}
+.stats{padding:14px 18px;min-width:190px}
+.stats b{font-size:22px}
+#hudButtons{display:flex;gap:8px;pointer-events:auto}
+#hudButtons button{width:auto;margin:0;padding:10px 14px}
 #trainPanel{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:10px;pointer-events:auto}
 #trainPanel button{width:auto;min-width:130px;margin:0}
 #settingsPanel{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 32px));padding:22px}
 #online{font-size:12px;color:#b7c1d1;margin-top:8px}
 #mobileControls{display:none;position:absolute;inset:auto 0 88px 0;pointer-events:none;justify-content:space-between;align-items:flex-end;padding:0 22px}
 #stickBase{width:126px;height:126px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff55;position:relative;pointer-events:auto;touch-action:none}
-#stickKnob{width:54px;height:54px;border-radius:50%;background:#a18cffdd;border:2px solid #fff9;position:absolute;left:34px;top:34px;transform:translate(0,0)}
+#stickKnob{width:54px;height:54px;border-radius:50%;background:#a18cffdd;border:2px solid #fff9;position:absolute;left:34px;top:34px}
 #jumpButton{width:88px;height:88px;border-radius:50%;background:#7657f5dd;border:2px solid #ffffff88;font-size:14px;pointer-events:auto;touch-action:none}
 #hint{position:absolute;top:88px;left:50%;transform:translateX(-50%);padding:7px 12px;border-radius:9px;background:#101722a8;color:#dce3ef;font-size:12px;white-space:nowrap}
 @media(max-width:700px){
- #mainMenu{align-items:flex-end;padding:14px;background:linear-gradient(0deg,rgba(7,10,16,.96),rgba(7,10,16,.35))}
- .menuCard{padding:20px}.logo{font-size:34px}#gameHud{padding:10px}.stats{min-width:0;padding:10px 12px}.stats b{font-size:18px}
- #hudButtons{flex-direction:column}#hudButtons button{padding:8px 10px}
- #trainPanel{bottom:8px;width:calc(100% - 16px);gap:5px;padding:7px}
- #trainPanel button{min-width:0;flex:1;padding:10px 4px;font-size:12px}
- #mobileControls{display:flex;bottom:88px;padding:0 18px}
- #hint{top:112px;font-size:11px}
+#mainMenu{align-items:flex-end;padding:14px;background:linear-gradient(0deg,rgba(7,10,16,.96),rgba(7,10,16,.35))}
+.menuCard{padding:20px}
+.logo{font-size:34px}
+#gameHud{padding:10px}
+.stats{min-width:0;padding:10px 12px}
+.stats b{font-size:18px}
+#hudButtons{flex-direction:column}
+#hudButtons button{padding:8px 10px}
+#trainPanel{bottom:8px;width:calc(100% - 16px);gap:5px;padding:7px}
+#trainPanel button{min-width:0;flex:1;padding:10px 4px;font-size:12px}
+#mobileControls{display:flex;bottom:88px;padding:0 18px}
+#hint{top:112px;font-size:11px}
 }
 </style>
 </head>
+
 <body>
 <canvas id="world"></canvas>
+
 <div id="hud">
- <section id="mainMenu"><div class="menuCard panel">
-  <div class="logo">MUSCLE<br><span>LEGENDS</span></div>
-  <div class="subtitle">ONLINE • TRAIN • GROW STRONGER</div>
-  <input id="playerName" maxlength="18" value="Player" placeholder="Имя игрока">
-  <input id="serverAddress" value="ws://localhost:8080" aria-label="Адрес сервера">
-  <button id="playButton">ИГРАТЬ</button><button class="secondary" id="openSettings">НАСТРОЙКИ</button>
-  <div id="connection">Не подключено к серверу</div>
- </div></section>
- <section id="gameHud">
-  <div class="stats panel">
-   <div>СИЛА: <b id="strength">0</b></div><div>МОНЕТЫ: <b id="coins">0</b></div><div>REBIRTH: <b id="rebirths">0</b></div>
-   <div id="online">Игроков онлайн: 0</div>
-  </div>
-  <div id="hudButtons"><button class="secondary" id="backToMenu">МЕНЮ</button></div>
-  <div id="hint">WASD / стрелки — движение · Пробел — прыжок</div>
-  <div id="mobileControls">
-   <div id="stickBase"><div id="stickKnob"></div></div>
-   <button id="jumpButton">ПРЫЖОК</button>
-  </div>
-  <div id="trainPanel" class="panel">
-   <button id="train">ТРЕНИРОВКА +1</button><button class="secondary" id="sell">ПРОДАТЬ СИЛУ</button><button class="secondary" id="rebirth">REBIRTH</button>
-  </div>
- </section>
- <section id="settingsPanel" class="panel">
-  <h2>Настройки</h2><label for="serverSetting">Адрес WebSocket-сервера</label>
-  <input id="serverSetting" value="ws://localhost:8080">
-  <button id="saveSettings">СОХРАНИТЬ</button><button class="secondary" id="closeSettings">НАЗАД</button>
- </section>
+<section id="mainMenu">
+<div class="menuCard panel">
+<div class="logo">MUSCLE<br><span>LEGENDS</span></div>
+<div class="subtitle">ONLINE • TRAIN • GROW STRONGER</div>
+<input id="playerName" maxlength="18" value="Player" placeholder="Имя игрока">
+<input id="serverAddress" value="" placeholder="Автоматически по адресу сайта" aria-label="Адрес сервера">
+<button id="playButton">ИГРАТЬ</button>
+<button class="secondary" id="openSettings">НАСТРОЙКИ</button>
+<div id="connection">Не подключено к серверу</div>
+</div>
+</section>
+
+<section id="gameHud">
+<div class="stats panel">
+<div>СИЛА: <b id="strength">0</b></div>
+<div>МОНЕТЫ: <b id="coins">0</b></div>
+<div>REBIRTH: <b id="rebirths">0</b></div>
+<div id="online">Игроков онлайн: 0</div>
+</div>
+<div id="hudButtons"><button class="secondary" id="backToMenu">МЕНЮ</button></div>
+<div id="hint">WASD / стрелки — движение · Пробел — прыжок</div>
+<div id="mobileControls">
+<div id="stickBase"><div id="stickKnob"></div></div>
+<button id="jumpButton">ПРЫЖОК</button>
+</div>
+<div id="trainPanel" class="panel">
+<button id="train">ТРЕНИРОВКА +1</button>
+<button class="secondary" id="sell">ПРОДАТЬ СИЛУ</button>
+<button class="secondary" id="rebirth">REBIRTH</button>
+</div>
+</section>
+
+<section id="settingsPanel" class="panel">
+<h2>Настройки</h2>
+<label for="serverSetting">Адрес WebSocket-сервера</label>
+<input id="serverSetting" value="" placeholder="Автоматически по адресу сайта">
+<button id="saveSettings">СОХРАНИТЬ</button>
+<button class="secondary" id="closeSettings">НАЗАД</button>
+</section>
 </div>
 
 <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-const $=s=>document.querySelector(s), canvas=$("#world");
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x202938);scene.fog=new THREE.Fog(0x202938,24,65);
+const $=s=>document.querySelector(s);
+const canvas=$("#world");
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x202938);
+scene.fog=new THREE.Fog(0x202938,24,65);
+
 const camera=new THREE.PerspectiveCamera(58,1,.1,120);
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
-scene.add(new THREE.HemisphereLight(0xffffff,0x596070,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-5,10,6);sun.castShadow=true;scene.add(sun);
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:0x354052,roughness:.95}));
-floor.rotation.x=-Math.PI/2;floor.position.y=-.04;floor.receiveShadow=true;scene.add(floor);
-const grid=new THREE.GridHelper(100,100,0x69758b,0x3b4658);grid.position.y=0;scene.add(grid);
-const arena=new THREE.Mesh(new THREE.CylinderGeometry(18,18,.16,64),new THREE.MeshStandardMaterial({color:0x46546b,roughness:.9}));
-arena.position.y=-.13;arena.receiveShadow=true;scene.add(arena);
 
-let ws=null, selfId=null, stats={strength:0,coins:0,rebirths:0}, players=new Map(), avatars=new Map();
-let lastFrame=performance.now(), lastSend=0, connected=false, template=null;
-const keys=new Set(), clock=new THREE.Clock();
+scene.add(new THREE.HemisphereLight(0xffffff,0x596070,2));
+
+const sun=new THREE.DirectionalLight(0xffffff,2.2);
+sun.position.set(-5,10,6);
+sun.castShadow=true;
+scene.add(sun);
+
+const floor=new THREE.Mesh(
+new THREE.PlaneGeometry(100,100),
+new THREE.MeshStandardMaterial({color:0x354052,roughness:.95})
+);
+floor.rotation.x=-Math.PI/2;
+floor.position.y=-.04;
+floor.receiveShadow=true;
+scene.add(floor);
+
+const grid=new THREE.GridHelper(100,100,0x69758b,0x3b4658);
+grid.position.y=0;
+scene.add(grid);
+
+const arena=new THREE.Mesh(
+new THREE.CylinderGeometry(18,18,.16,64),
+new THREE.MeshStandardMaterial({color:0x46546b,roughness:.9})
+);
+arena.position.y=-.13;
+arena.receiveShadow=true;
+scene.add(arena);
+
+let ws=null,selfId=null;
+let stats={strength:0,coins:0,rebirths:0};
+let players=new Map(),avatars=new Map();
+let lastFrame=performance.now(),lastSend=0,connected=false;
+const keys=new Set();
 const local={x:0,z:0,y:0,yaw:0,vy:0,grounded:true};
-const speed=6.2, jumpVelocity=7.1, gravity=19;
+const speed=6.2,jumpVelocity=7.1,gravity=19;
 const input={x:0,z:0};
 let stickPointer=null,stickCenter=null;
 
 function makeProceduralAvatar(color=0x8d75ff){
- const root=new THREE.Group(), body=new THREE.Group();root.add(body);
- const mat=new THREE.MeshStandardMaterial({color,roughness:.68});
- const skin=new THREE.MeshStandardMaterial({color:0xe0ad8a,roughness:.8});
- const dark=new THREE.MeshStandardMaterial({color:0x222938,roughness:.85});
- const sphere=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),m);o.scale.set(w,h,d);o.position.set(x,y,z);o.castShadow=true;body.add(o);return o;};
- const limb=(a,b,r,m)=>{const v=new THREE.Vector3().subVectors(b,a),o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,v.length(),12),m);o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());o.castShadow=true;body.add(o);return o;};
- sphere(.48,.34,.27,mat,0,1.36,0); // shoulders
- sphere(.34,.48,.23,mat,0,.91,0); // torso
- sphere(.25,.25,.24,skin,0,1.83,0); // head
- sphere(.16,.08,.245,dark,0,1.9,0); // hair
- limb(new THREE.Vector3(-.25,1.35,0),new THREE.Vector3(-.38,.82,0),.105,skin);
- limb(new THREE.Vector3(.25,1.35,0),new THREE.Vector3(.38,.82,0),.105,skin);
- limb(new THREE.Vector3(-.16,.58,0),new THREE.Vector3(-.18,.12,0),.13,dark);
- limb(new THREE.Vector3(.16,.58,0),new THREE.Vector3(.18,.12,0),.13,dark);
- sphere(.14,.08,.2,dark,-.18,.08,.03);sphere(.14,.08,.2,dark,.18,.08,.03);
- const nameCanvas=document.createElement("canvas");nameCanvas.width=512;nameCanvas.height=96;
- const ctx=nameCanvas.getContext("2d");ctx.fillStyle="#ffffff";ctx.font="bold 48px Arial";ctx.textAlign="center";ctx.fillText("Player",256,62);
- const tex=new THREE.CanvasTexture(nameCanvas);const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
- label.scale.set(2.2,.42,1);label.position.y=2.25;root.add(label);
- return {root,body,label,nameCanvas,ctx,tex,procedural:true,phase:Math.random()*6};
+const root=new THREE.Group(),body=new THREE.Group();
+root.add(body);
+const mat=new THREE.MeshStandardMaterial({color,roughness:.68});
+const skin=new THREE.MeshStandardMaterial({color:0xe0ad8a,roughness:.8});
+const dark=new THREE.MeshStandardMaterial({color:0x222938,roughness:.85});
+
+const sphere=(w,h,d,m,x,y,z)=>{
+const o=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),m);
+o.scale.set(w,h,d);o.position.set(x,y,z);
+o.castShadow=true;body.add(o);return o;
+};
+
+const limb=(a,b,r,m)=>{
+const v=new THREE.Vector3().subVectors(b,a);
+const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,v.length(),12),m);
+o.position.copy(a).add(b).multiplyScalar(.5);
+o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());
+o.castShadow=true;body.add(o);return o;
+};
+
+sphere(.48,.34,.27,mat,0,1.36,0);
+sphere(.34,.48,.23,mat,0,.91,0);
+sphere(.25,.25,.24,skin,0,1.83,0);
+sphere(.16,.08,.245,dark,0,1.9,0);
+limb(new THREE.Vector3(-.25,1.35,0),new THREE.Vector3(-.38,.82,0),.105,skin);
+limb(new THREE.Vector3(.25,1.35,0),new THREE.Vector3(.38,.82,0),.105,skin);
+limb(new THREE.Vector3(-.16,.58,0),new THREE.Vector3(-.18,.12,0),.13,dark);
+limb(new THREE.Vector3(.16,.58,0),new THREE.Vector3(.18,.12,0),.13,dark);
+sphere(.14,.08,.2,dark,-.18,.08,.03);
+sphere(.14,.08,.2,dark,.18,.08,.03);
+
+const nameCanvas=document.createElement("canvas");
+nameCanvas.width=512;nameCanvas.height=96;
+const ctx=nameCanvas.getContext("2d");
+const tex=new THREE.CanvasTexture(nameCanvas);
+const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+label.scale.set(2.2,.42,1);
+label.position.y=2.25;
+root.add(label);
+
+return {root,body,label,nameCanvas,ctx,tex,phase:Math.random()*6};
 }
+
 function setAvatarName(a,name){
- a.ctx.clearRect(0,0,512,96);a.ctx.fillStyle="#ffffff";a.ctx.strokeStyle="#111827";a.ctx.lineWidth=8;
- a.ctx.font="bold 48px Arial";a.ctx.textAlign="center";a.ctx.strokeText(String(name||"Player").slice(0,18),256,62);a.ctx.fillText(String(name||"Player").slice(0,18),256,62);a.tex.needsUpdate=true;
+a.ctx.clearRect(0,0,512,96);
+a.ctx.fillStyle="#ffffff";
+a.ctx.strokeStyle="#111827";
+a.ctx.lineWidth=8;
+a.ctx.font="bold 48px Arial";
+a.ctx.textAlign="center";
+a.ctx.strokeText(String(name||"Player").slice(0,18),256,62);
+a.ctx.fillText(String(name||"Player").slice(0,18),256,62);
+a.tex.needsUpdate=true;
 }
+
+function hash(s){
+let h=0;
+for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;
+return Math.abs(h);
+}
+
 function buildAvatar(id,p){
- const color=id===selfId?0x9c83ff:new THREE.Color().setHSL((hash(id)%360)/360,.62,.58);
- const a=makeProceduralAvatar(color);setAvatarName(a,p.name);scene.add(a.root);avatars.set(id,a);return a;
+const color=id===selfId?0x9c83ff:new THREE.Color().setHSL((hash(id)%360)/360,.62,.58);
+const a=makeProceduralAvatar(color);
+setAvatarName(a,p.name);
+scene.add(a.root);
+avatars.set(id,a);
+return a;
 }
-function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h);}
-function removeAvatar(id){const a=avatars.get(id);if(!a)return;scene.remove(a.root);a.root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}});avatars.delete(id);}
+
+function removeAvatar(id){
+const a=avatars.get(id);
+if(!a)return;
+scene.remove(a.root);
+a.root.traverse(o=>{
+if(o.geometry)o.geometry.dispose();
+if(o.material){
+if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());
+else o.material.dispose();
+}
+});
+avatars.delete(id);
+}
+
 function updatePlayer(p,immediate=false){
- if(!p||!p.id)return;players.set(p.id,p);let a=avatars.get(p.id);if(!a)a=buildAvatar(p.id,p);
- setAvatarName(a,p.name);a.target={x:Number(p.x)||0,z:Number(p.z)||0,y:Number(p.y)||0,yaw:Number(p.yaw)||0};
- if(immediate){a.root.position.set(a.target.x,a.target.y,a.target.z);a.root.rotation.y=a.target.yaw;}
+if(!p||!p.id)return;
+players.set(p.id,p);
+let a=avatars.get(p.id);
+if(!a)a=buildAvatar(p.id,p);
+setAvatarName(a,p.name);
+a.target={x:Number(p.x)||0,z:Number(p.z)||0,y:Number(p.y)||0,yaw:Number(p.yaw)||0};
+if(immediate){
+a.root.position.set(a.target.x,a.target.y,a.target.z);
+a.root.rotation.y=a.target.yaw;
 }
-function rebuildAll(list){const keep=new Set();for(const p of list){keep.add(p.id);updatePlayer(p,true);}for(const id of [...avatars.keys()])if(!keep.has(id))removeAvatar(id);players=new Map(list.map(p=>[p.id,p]));render();}
-function setStatus(t,error=false){$("#connection").textContent=t;$("#connection").style.color=error?"#ff9292":"#9ee6a0";}
-function render(){ $("#strength").textContent=stats.strength??0;$("#coins").textContent=stats.coins??0;$("#rebirths").textContent=stats.rebirths??0;$("#online").textContent="Игроков онлайн: "+players.size; }
-function showMenu(){ $("#mainMenu").style.display="flex";$("#gameHud").style.display="none"; }
-function showGame(){ $("#mainMenu").style.display="none";$("#gameHud").style.display="block"; }
-function send(type,data={}){if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type,...data}));}
+}
+
+function rebuildAll(list){
+const keep=new Set();
+for(const p of list){keep.add(p.id);updatePlayer(p,true);}
+for(const id of [...avatars.keys()])if(!keep.has(id))removeAvatar(id);
+players=new Map(list.map(p=>[p.id,p]));
+render();
+}
+
+function setStatus(t,error=false){
+$("#connection").textContent=t;
+$("#connection").style.color=error?"#ff9292":"#9ee6a0";
+}
+
+function render(){
+$("#strength").textContent=stats.strength??0;
+$("#coins").textContent=stats.coins??0;
+$("#rebirths").textContent=stats.rebirths??0;
+$("#online").textContent="Игроков онлайн: "+players.size;
+}
+
+function showMenu(){
+$("#mainMenu").style.display="flex";
+$("#gameHud").style.display="none";
+}
+
+function showGame(){
+$("#mainMenu").style.display="none";
+$("#gameHud").style.display="block";
+}
+
+function send(type,data={}){
+if(ws?.readyState===WebSocket.OPEN)
+ws.send(JSON.stringify({type,...data}));
+}
+
+function getServerAddress(){
+const configured=$("#serverAddress").value.trim();
+if(configured)return configured;
+return location.protocol==="https:"
+?"wss://"+location.host
+:"ws://"+location.host;
+}
+
 function connect(){
- if(ws){ws.onclose=null;ws.close();}for(const id of [...avatars.keys()])removeAvatar(id);
- const address=$("#serverAddress").value.trim();setStatus("Подключаемся...");
- try{ws=new WebSocket(address);}catch(e){setStatus("Неверный адрес сервера",true);return;}
- ws.onopen=()=>{
-  let pid=localStorage.getItem("ml-player-id");if(!pid){pid="p_"+crypto.randomUUID();localStorage.setItem("ml-player-id",pid);}
-  selfId=pid;ws.send(JSON.stringify({type:"join",playerId:pid,name:$("#playerName").value}));
- };
- ws.onmessage=e=>{
-  let m;try{m=JSON.parse(e.data)}catch{return;}
-  if(m.type==="joined"){stats=m.player;local.x=m.player.x||0;local.z=m.player.z||0;rebuildAll(m.players||[]);connected=true;setStatus("Подключено к серверу");showGame();render();}
-  else if(m.type==="stats"){stats=m.player;render();}
-  else if(m.type==="worldState"){rebuildAll(m.players||[]);}
-  else if(["playerJoined","playerUpdated","playerMoved"].includes(m.type)){updatePlayer(m.player,m.type!=="playerMoved");render();}
-  else if(m.type==="playerLeft"){players.delete(m.id);removeAvatar(m.id);render();}
-  else if(m.type==="error"){setStatus(m.message,true);}
- };
- ws.onerror=()=>setStatus("Не удалось подключиться. Проверь сервер.",true);
- ws.onclose=()=>{connected=false;showMenu();setStatus("Соединение закрыто",true);};
+if(ws){ws.onclose=null;ws.close();}
+for(const id of [...avatars.keys()])removeAvatar(id);
+
+const address=getServerAddress();
+setStatus("Подключаемся к серверу...");
+
+try{
+ws=new WebSocket(address);
+}catch(e){
+setStatus("Неверный адрес сервера: "+e.message,true);
+return;
 }
+
+ws.onopen=()=>{
+let pid=localStorage.getItem("ml-player-id");
+if(!pid){
+pid="p_"+crypto.randomUUID();
+localStorage.setItem("ml-player-id",pid);
+}
+selfId=pid;
+ws.send(JSON.stringify({
+type:"join",
+playerId:pid,
+name:$("#playerName").value
+}));
+};
+
+ws.onmessage=e=>{
+let m;
+try{m=JSON.parse(e.data)}catch{return;}
+
+if(m.type==="joined"){
+stats=m.player;
+local.x=m.player.x||0;
+local.z=m.player.z||0;
+rebuildAll(m.players||[]);
+connected=true;
+setStatus("Подключено к серверу");
+showGame();
+render();
+}
+else if(m.type==="stats"){
+stats=m.player;render();
+}
+else if(m.type==="worldState"){
+rebuildAll(m.players||[]);
+}
+else if(["playerJoined","playerUpdated","playerMoved"].includes(m.type)){
+updatePlayer(m.player,m.type!=="playerMoved");
+render();
+}
+else if(m.type==="playerLeft"){
+players.delete(m.id);
+removeAvatar(m.id);
+render();
+}
+else if(m.type==="error"){
+setStatus(m.message,true);
+}
+};
+
+ws.onerror=()=>{
+setStatus("Не удалось подключиться. Проверь сервер.",true);
+};
+
+ws.onclose=()=>{
+connected=false;
+showMenu();
+setStatus("Соединение закрыто",true);
+};
+}
+
 function getInput(){
- let x=0,z=0;
- if(keys.has("KeyA")||keys.has("ArrowLeft"))x-=1;if(keys.has("KeyD")||keys.has("ArrowRight"))x+=1;
- if(keys.has("KeyW")||keys.has("ArrowUp"))z-=1;if(keys.has("KeyS")||keys.has("ArrowDown"))z+=1;
- x+=input.x;z+=input.z;const len=Math.hypot(x,z);if(len>1){x/=len;z/=len;}return {x,z};
+let x=0,z=0;
+if(keys.has("KeyA")||keys.has("ArrowLeft"))x-=1;
+if(keys.has("KeyD")||keys.has("ArrowRight"))x+=1;
+if(keys.has("KeyW")||keys.has("ArrowUp"))z-=1;
+if(keys.has("KeyS")||keys.has("ArrowDown"))z+=1;
+x+=input.x;z+=input.z;
+const len=Math.hypot(x,z);
+if(len>1){x/=len;z/=len;}
+return {x,z};
 }
-function jump(){if(connected&&local.grounded){local.vy=jumpVelocity;local.grounded=false;send("jump",{jumping:true});}}
-window.addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==="Space"&&!e.repeat)jump();});
+
+function jump(){
+if(connected&&local.grounded){
+local.vy=jumpVelocity;
+local.grounded=false;
+send("jump",{jumping:true});
+}
+}
+
+window.addEventListener("keydown",e=>{
+if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();
+keys.add(e.code);
+if(e.code==="Space"&&!e.repeat)jump();
+});
+
 window.addEventListener("keyup",e=>keys.delete(e.code));
 window.addEventListener("blur",()=>keys.clear());
+
 const base=$("#stickBase"),knob=$("#stickKnob");
+
 function updateStick(e){
- if(!stickCenter)return;let dx=e.clientX-stickCenter.x,dy=e.clientY-stickCenter.y;const max=42,len=Math.hypot(dx,dy);
- if(len>max){dx=dx/len*max;dy=dy/len*max;}
- knob.style.transform=`translate(${dx}px,${dy}px)`;input.x=dx/max;input.z=dy/max;
+if(!stickCenter)return;
+let dx=e.clientX-stickCenter.x,dy=e.clientY-stickCenter.y;
+const max=42,len=Math.hypot(dx,dy);
+if(len>max){dx=dx/len*max;dy=dy/len*max;}
+knob.style.transform=`translate(${dx}px,${dy}px)`;
+input.x=dx/max;input.z=dy/max;
 }
-base.addEventListener("pointerdown",e=>{stickPointer=e.pointerId;const r=base.getBoundingClientRect();stickCenter={x:r.left+r.width/2,y:r.top+r.height/2};base.setPointerCapture(e.pointerId);updateStick(e);});
-base.addEventListener("pointermove",e=>{if(e.pointerId===stickPointer)updateStick(e);});
-function releaseStick(e){if(e.pointerId!==stickPointer)return;stickPointer=null;stickCenter=null;input.x=0;input.z=0;knob.style.transform="translate(0,0)";}
-base.addEventListener("pointerup",releaseStick);base.addEventListener("pointercancel",releaseStick);
-$("#jumpButton").addEventListener("pointerdown",e=>{e.preventDefault();jump();});
+
+base.addEventListener("pointerdown",e=>{
+stickPointer=e.pointerId;
+const r=base.getBoundingClientRect();
+stickCenter={x:r.left+r.width/2,y:r.top+r.height/2};
+base.setPointerCapture(e.pointerId);
+updateStick(e);
+});
+
+base.addEventListener("pointermove",e=>{
+if(e.pointerId===stickPointer)updateStick(e);
+});
+
+function releaseStick(e){
+if(e.pointerId!==stickPointer)return;
+stickPointer=null;stickCenter=null;
+input.x=0;input.z=0;
+knob.style.transform="translate(0,0)";
+}
+
+base.addEventListener("pointerup",releaseStick);
+base.addEventListener("pointercancel",releaseStick);
+
+$("#jumpButton").addEventListener("pointerdown",e=>{
+e.preventDefault();jump();
+});
 
 function updateMovement(dt){
- if(!connected)return;const v=getInput();local.x+=v.x*speed*dt;local.z+=v.z*speed*dt;
- if(Math.hypot(v.x,v.z)>.08)local.yaw=Math.atan2(v.x,v.z);
- if(!local.grounded){local.vy-=gravity*dt;local.y+=local.vy*dt;if(local.y<=0){local.y=0;local.vy=0;local.grounded=true;}}
- const a=avatars.get(selfId);if(a){a.root.position.set(local.x,local.y,local.z);a.root.rotation.y=local.yaw;}
- const now=performance.now();if(now-lastSend>66){lastSend=now;send("move",{x:local.x,z:local.z,y:local.y,yaw:local.yaw,jumping:!local.grounded});}
+if(!connected)return;
+const v=getInput();
+local.x+=v.x*speed*dt;
+local.z+=v.z*speed*dt;
+
+if(Math.hypot(v.x,v.z)>.08)local.yaw=Math.atan2(v.x,v.z);
+
+if(!local.grounded){
+local.vy-=gravity*dt;
+local.y+=local.vy*dt;
+if(local.y<=0){
+local.y=0;local.vy=0;local.grounded=true;
 }
+}
+
+const a=avatars.get(selfId);
+if(a){
+a.root.position.set(local.x,local.y,local.z);
+a.root.rotation.y=local.yaw;
+}
+
+const now=performance.now();
+if(now-lastSend>66){
+lastSend=now;
+send("move",{
+x:local.x,z:local.z,y:local.y,
+yaw:local.yaw,jumping:!local.grounded
+});
+}
+}
+
 function animateAvatars(dt){
- for(const [id,a] of avatars){
-  if(id!==selfId&&a.target){const t=a.target;a.root.position.x=THREE.MathUtils.damp(a.root.position.x,t.x,10,dt);a.root.position.z=THREE.MathUtils.damp(a.root.position.z,t.z,10,dt);a.root.position.y=THREE.MathUtils.damp(a.root.position.y,t.y,12,dt);let dy=((t.yaw-a.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;a.root.rotation.y+=dy*Math.min(1,dt*10);}
-  const moving=id===selfId?Math.hypot(getInput().x,getInput().z)>.08:(a.target&&Math.hypot(a.root.position.x-(a.prevX??a.root.position.x),a.root.position.z-(a.prevZ??a.root.position.z))>.003);
-  a.phase+=dt*(moving?10:2);a.body.position.y=Math.abs(Math.sin(a.phase))*(moving?.055:.008);
-  a.prevX=a.root.position.x;a.prevZ=a.root.position.z;
- }
+for(const [id,a] of avatars){
+if(id!==selfId&&a.target){
+const t=a.target;
+a.root.position.x=THREE.MathUtils.damp(a.root.position.x,t.x,10,dt);
+a.root.position.z=THREE.MathUtils.damp(a.root.position.z,t.z,10,dt);
+a.root.position.y=THREE.MathUtils.damp(a.root.position.y,t.y,12,dt);
+let dy=((t.yaw-a.root.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
+a.root.rotation.y+=dy*Math.min(1,dt*10);
 }
+const moving=id===selfId
+?Math.hypot(getInput().x,getInput().z)>.08
+:(a.target&&Math.hypot(a.root.position.x-(a.prevX??a.root.position.x),a.root.position.z-(a.prevZ??a.root.position.z))>.003);
+a.phase+=dt*(moving?10:2);
+a.body.position.y=Math.abs(Math.sin(a.phase))*(moving?.055:.008);
+a.prevX=a.root.position.x;
+a.prevZ=a.root.position.z;
+}
+}
+
 function updateCamera(dt){
- const a=avatars.get(selfId);if(!a)return;
- const offset=new THREE.Vector3(-Math.sin(local.yaw)*5,3.1,-Math.cos(local.yaw)*5);
- const desired=a.root.position.clone().add(offset);camera.position.lerp(desired,1-Math.exp(-5*dt));
- const look=a.root.position.clone().add(new THREE.Vector3(0,1.15,0));camera.lookAt(look);
+const a=avatars.get(selfId);
+if(!a)return;
+const offset=new THREE.Vector3(-Math.sin(local.yaw)*5,3.1,-Math.cos(local.yaw)*5);
+const desired=a.root.position.clone().add(offset);
+camera.position.lerp(desired,1-Math.exp(-5*dt));
+const look=a.root.position.clone().add(new THREE.Vector3(0,1.15,0));
+camera.lookAt(look);
 }
-function resize(){const r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/Math.max(1,r.height);camera.updateProjectionMatrix();}
-new ResizeObserver(resize).observe(canvas);resize();
-function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-lastFrame)/1000||0);lastFrame=now;updateMovement(dt);animateAvatars(dt);updateCamera(dt);renderer.render(scene,camera);}
+
+function resize(){
+const r=canvas.getBoundingClientRect();
+renderer.setSize(r.width,r.height,false);
+camera.aspect=r.width/Math.max(1,r.height);
+camera.updateProjectionMatrix();
+}
+
+new ResizeObserver(resize).observe(canvas);
+resize();
+
+function loop(now){
+requestAnimationFrame(loop);
+const dt=Math.min(.05,(now-lastFrame)/1000||0);
+lastFrame=now;
+updateMovement(dt);
+animateAvatars(dt);
+updateCamera(dt);
+renderer.render(scene,camera);
+}
 requestAnimationFrame(loop);
 
 $("#playButton").onclick=connect;
-$("#train").onclick=()=>send("train");$("#sell").onclick=()=>send("sell");$("#rebirth").onclick=()=>send("rebirth");
+$("#train").onclick=()=>send("train");
+$("#sell").onclick=()=>send("sell");
+$("#rebirth").onclick=()=>send("rebirth");
 $("#backToMenu").onclick=()=>showMenu();
-$("#openSettings").onclick=()=>{$("#serverSetting").value=$("#serverAddress").value;$("#settingsPanel").style.display="block";};
+
+$("#openSettings").onclick=()=>{
+$("#serverSetting").value=$("#serverAddress").value;
+$("#settingsPanel").style.display="block";
+};
+
 $("#closeSettings").onclick=()=>$("#settingsPanel").style.display="none";
-$("#saveSettings").onclick=()=>{$("#serverAddress").value=$("#serverSetting").value;$("#settingsPanel").style.display="none";};
+
+$("#saveSettings").onclick=()=>{
+$("#serverAddress").value=$("#serverSetting").value.trim();
+$("#settingsPanel").style.display="none";
+};
 </script>
 </body>
 </html>
