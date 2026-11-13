@@ -127,16 +127,12 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x596070,2));
-
 const sun=new THREE.DirectionalLight(0xffffff,2.2);
 sun.position.set(-5,10,6);
 sun.castShadow=true;
 scene.add(sun);
 
-const floor=new THREE.Mesh(
-new THREE.PlaneGeometry(100,100),
-new THREE.MeshStandardMaterial({color:0x354052,roughness:.95})
-);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:0x354052,roughness:.95}));
 floor.rotation.x=-Math.PI/2;
 floor.position.y=-.04;
 floor.receiveShadow=true;
@@ -146,10 +142,7 @@ const grid=new THREE.GridHelper(100,100,0x69758b,0x3b4658);
 grid.position.y=0;
 scene.add(grid);
 
-const arena=new THREE.Mesh(
-new THREE.CylinderGeometry(18,18,.16,64),
-new THREE.MeshStandardMaterial({color:0x46546b,roughness:.9})
-);
+const arena=new THREE.Mesh(new THREE.CylinderGeometry(18,18,.16,64),new THREE.MeshStandardMaterial({color:0x46546b,roughness:.9}));
 arena.position.y=-.13;
 arena.receiveShadow=true;
 scene.add(arena);
@@ -204,7 +197,6 @@ const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,
 label.scale.set(2.2,.42,1);
 label.position.y=2.25;
 root.add(label);
-
 return {root,body,label,nameCanvas,ctx,tex,phase:Math.random()*6};
 }
 
@@ -293,16 +285,26 @@ $("#gameHud").style.display="block";
 }
 
 function send(type,data={}){
-if(ws?.readyState===WebSocket.OPEN)
-ws.send(JSON.stringify({type,...data}));
+if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type,...data}));
 }
 
+/* ИСПРАВЛЕННЫЙ АДРЕС СЕРВЕРА */
 function getServerAddress(){
 const configured=$("#serverAddress").value.trim();
-if(configured)return configured;
-return location.protocol==="https:"
-?"wss://"+location.host
-:"ws://"+location.host;
+
+if(configured){
+return configured;
+}
+
+if(location.hostname==="muscle-2fb5.onrender.com"){
+return "wss://muscle-2fb5.onrender.com";
+}
+
+if(location.host){
+return (location.protocol==="https:"?"wss://":"ws://")+location.host;
+}
+
+return "wss://muscle-2fb5.onrender.com";
 }
 
 function connect(){
@@ -310,12 +312,12 @@ if(ws){ws.onclose=null;ws.close();}
 for(const id of [...avatars.keys()])removeAvatar(id);
 
 const address=getServerAddress();
-setStatus("Подключаемся к серверу...");
+setStatus("Подключаемся к серверу: "+address);
 
 try{
 ws=new WebSocket(address);
 }catch(e){
-setStatus("Неверный адрес сервера: "+e.message,true);
+setStatus("Ошибка адреса: "+e.message,true);
 return;
 }
 
@@ -368,7 +370,7 @@ setStatus(m.message,true);
 };
 
 ws.onerror=()=>{
-setStatus("Не удалось подключиться. Проверь сервер.",true);
+setStatus("Не удалось подключиться. Проверь сервер и WebSocket.",true);
 };
 
 ws.onclose=()=>{
@@ -449,7 +451,6 @@ if(!connected)return;
 const v=getInput();
 local.x+=v.x*speed*dt;
 local.z+=v.z*speed*dt;
-
 if(Math.hypot(v.x,v.z)>.08)local.yaw=Math.atan2(v.x,v.z);
 
 if(!local.grounded){
@@ -469,10 +470,7 @@ a.root.rotation.y=local.yaw;
 const now=performance.now();
 if(now-lastSend>66){
 lastSend=now;
-send("move",{
-x:local.x,z:local.z,y:local.y,
-yaw:local.yaw,jumping:!local.grounded
-});
+send("move",{x:local.x,z:local.z,y:local.y,yaw:local.yaw,jumping:!local.grounded});
 }
 }
 
