@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#111827">
+<title>Muscle Legends Online</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+:root{color-scheme:dark;--panel:rgba(16,23,35,.94);--border:#ffffff20;--accent:#8d73ff;--muted:#aab7ca;--good:#8ee0a2;--bad:#ff9a9a}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111827;color:#f5f7fb;font:15px system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+button,input{font:inherit}
+button{border:0;border-radius:11px;padding:11px 14px;background:var(--accent);color:white;font-weight:850;cursor:pointer;touch-action:manipulation;transition:filter .12s,transform .12s}
+button:active{transform:scale(.98)}button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+button.secondary{background:#344155;color:#eaf0fa}
+button.ghost{background:#ffffff12;border:1px solid #ffffff1c}
+input{width:100%;border:1px solid #ffffff18;border-radius:10px;background:#273448;color:white;padding:12px;outline:none}
+input:focus{border-color:#9c87ff}
+#world{position:fixed;inset:0;width:100%;height:100%;display:block;background:#1a2636}
+#hud{position:fixed;inset:0;pointer-events:none}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 16px 50px #0008;backdrop-filter:blur(12px)}
+#mainMenu{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;padding:clamp(18px,5vw,64px);background:linear-gradient(90deg,rgba(5,9,17,.9),rgba(5,9,17,.42) 58%,rgba(5,9,17,.06))}
+.menuCard{width:min(420px,100%);padding:28px;pointer-events:auto}
+.logo{font-size:clamp(32px,5vw,50px);font-weight:1000;line-height:.9;letter-spacing:-2px}.logo span{color:#a18aff}
+.subtitle{color:var(--muted);font-size:12px;font-weight:800;letter-spacing:2px;margin:15px 0 23px}
+.menuCard button{width:100%;margin-top:9px}.menuCard input{margin:5px 0}
+#connection{font-size:12px;color:#ffc979;min-height:18px;margin-top:10px;overflow-wrap:anywhere}
+#gameHud{position:absolute;inset:0;display:none;padding:14px;justify-content:space-between;align-items:flex-start}
+#statsPanel{padding:12px 15px;min-width:210px;pointer-events:auto}
+.statLine{display:flex;justify-content:space-between;gap:18px;margin:3px 0;color:#d7dfeb;font-size:13px}
+.statLine b{color:#fff;font-size:16px;font-variant-numeric:tabular-nums}
+#levelLine{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:9px}
+#xpTrack{height:7px;margin-top:5px;background:#ffffff20;border-radius:99px;overflow:hidden}
+#xpFill{height:100%;width:0;background:linear-gradient(90deg,#7b60ff,#b5a5ff);border-radius:99px;transition:width .2s}
+#zoneInfo{margin-top:8px;font-size:12px;color:#d5cbff;font-weight:800}
+#topButtons{display:flex;gap:7px;pointer-events:auto;flex-wrap:wrap;justify-content:flex-end;max-width:55%}
+#topButtons button{margin:0;padding:10px 13px;font-size:12px}
+#online{font-size:11px;color:var(--muted);margin-top:8px}
+#trainPanel{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:9px;pointer-events:auto;max-width:calc(100% - 20px)}
+#trainPanel button{white-space:nowrap;min-width:145px}
+#train{background:linear-gradient(135deg,#795cf5,#a38bff)}
+#hint{position:absolute;top:88px;left:50%;transform:translateX(-50%);padding:7px 12px;border-radius:9px;background:#101722bd;color:#dce3ef;font-size:11px;white-space:nowrap;text-align:center}
+#mobileControls{display:none;position:absolute;inset:auto 0 84px 0;pointer-events:none;justify-content:space-between;align-items:flex-end;padding:0 18px}
+#stickBase{width:124px;height:124px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff55;position:relative;pointer-events:auto;touch-action:none}
+#stickKnob{width:52px;height:52px;border-radius:50%;background:#a18cffdd;border:2px solid #fff9;position:absolute;left:34px;top:34px}
+#jumpButton{width:86px;height:86px;border-radius:50%;background:#795cf5dd;border:2px solid #ffffff88;font-size:12px;pointer-events:auto;touch-action:none}
+.modal{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 24px));max-height:min(78vh,650px);overflow:auto;padding:20px;pointer-events:auto}
+.modal h2{margin:0 0 5px;font-size:23px}.modalSub{color:var(--muted);font-size:12px;margin-bottom:14px}
+.modalHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modalHeader button{width:38px;padding:8px}
+.shopGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.shopItem,.petItem{padding:13px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08}
+.shopItem strong,.petItem strong{display:block;font-size:14px;margin-bottom:5px}.shopItem p,.petItem p{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.35}
+.shopItem button,.petItem button{width:100%;font-size:12px;padding:10px}
+#petInventory{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.petIcon{font-size:26px;float:right}
+#toast{position:absolute;left:50%;top:17%;transform:translate(-50%,-8px);opacity:0;transition:opacity .18s,transform .18s;background:#121b29ef;border:1px solid #ffffff2b;border-radius:12px;padding:11px 15px;max-width:min(90vw,440px);font-size:13px;text-align:center;box-shadow:0 10px 35px #0008;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#settingsPanel{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 28px));padding:20px;pointer-events:auto}
+#settingsPanel button{width:100%;margin-top:8px}
+@media(max-width:700px){
+ #mainMenu{align-items:flex-end;padding:13px;background:linear-gradient(0deg,rgba(5,9,17,.97),rgba(5,9,17,.30))}
+ .menuCard{padding:20px}.logo{font-size:36px}
+ #gameHud{padding:8px}
+ #statsPanel{min-width:0;padding:9px 11px}.statLine{gap:10px;font-size:11px}.statLine b{font-size:14px}
+ #topButtons{max-width:57%;gap:5px}#topButtons button{padding:8px 9px;font-size:11px}
+ #trainPanel{bottom:7px;width:calc(100% - 12px);gap:5px;padding:6px}
+ #trainPanel button{min-width:0;flex:1;padding:10px 5px;font-size:11px}
+ #mobileControls{display:flex;bottom:78px;padding:0 14px}
+ #hint{top:115px;font-size:10px;white-space:normal;width:calc(100% - 150px)}
+ .modal{padding:15px;max-height:76vh}.shopGrid,#petInventory{grid-template-columns:1fr 1fr}.shopItem,.petItem{padding:10px}
+}
+@media(max-width:380px){#statsPanel{max-width:48%}.statLine{font-size:10px}#topButtons{max-width:48%}#topButtons button{font-size:10px;padding:7px}#hint{display:none}.shopGrid,#petInventory{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+<div id="hud">
+  <section id="mainMenu">
+    <div class="menuCard panel">
+      <div class="logo">MUSCLE<br><span>LEGENDS</span></div>
+      <div class="subtitle">ONLINE • TRAIN • GROW STRONGER</div>
+      <input id="playerName" maxlength="18" value="Player" placeholder="Имя игрока" autocomplete="nickname">
+      <input id="serverAddress" value="" placeholder="Сервер определится автоматически" aria-label="Адрес сервера">
+      <button id="playButton">ИГРАТЬ</button>
+      <button class="secondary" id="openSettings">НАСТРОЙКИ</button>
+      <div id="connection">Не подключено к серверу</div>
+    </div>
+  </section>
+
+  <section id="gameHud">
+    <div id="statsPanel" class="panel">
+      <div class="statLine"><span>СИЛА</span><b id="strength">0</b></div>
+      <div class="statLine"><span>МОНЕТЫ</span><b id="coins">0</b></div>
+      <div class="statLine"><span>REBIRTH</span><b id="rebirths">0</b></div>
+      <div class="statLine"><span>ПИТОМЦЫ ×</span><b id="petBoost">1.00</b></div>
+      <div id="levelLine"><span>УРОВЕНЬ <b id="level">1</b></span><span id="xpText">0 / 100 XP</span></div>
+      <div id="xpTrack"><div id="xpFill"></div></div>
+      <div id="zoneInfo">Зона: Стартовая площадка</div>
+      <div id="online">Игроков онлайн: 1</div>
+    </div>
+
+    <div id="topButtons">
+      <button id="openShop" class="secondary">МАГАЗИН</button>
+      <button id="openPets" class="secondary">ПИТОМЦЫ</button>
+      <button id="backToMenu" class="ghost">МЕНЮ</button>
+    </div>
+
+    <div id="hint">WASD / стрелки — движение · Пробел — прыжок</div>
+    <div id="mobileControls">
+      <div id="stickBase"><div id="stickKnob"></div></div>
+      <button id="jumpButton">ПРЫЖОК</button>
+    </div>
+    <div id="trainPanel" class="panel">
+      <button id="train" disabled>ПОДОЙДИ К ТРЕНАЖЁРУ</button>
+      <button id="sell" class="secondary">ПРОДАТЬ СИЛУ</button>
+      <button id="rebirth" class="secondary">REBIRTH</button>
+    </div>
+  </section>
+
+  <section id="shopModal" class="modal panel">
+    <div class="modalHeader"><div><h2>Магазин улучшений</h2><div class="modalSub">Усиливай тренировки и открывай новые яйца.</div></div><button id="closeShop" class="secondary">✕</button></div>
+    <div class="shopGrid">
+      <div class="shopItem"><strong>⚡ Улучшение силы</strong><p id="upgradeDescription">+25% к силе за тренировку.</p><button id="buyUpgrade">КУПИТЬ</button></div>
+      <div class="shopItem"><strong>🐣 Обычное яйцо</strong><p>150 монет · зайчик, щенок или дракончик.</p><button data-egg="basic" class="buyEgg">КУПИТЬ · 150</button></div>
+      <div class="shopItem"><strong>🌲 Лесное яйцо</strong><p>800 монет · редкие и эпические питомцы. Нужно 100 силы.</p><button data-egg="forest" class="buyEgg">КУПИТЬ · 800</button></div>
+      <div class="shopItem"><strong>✨ Легендарное яйцо</strong><p>3000 монет · сильные питомцы. Нужно 1000 силы.</p><button data-egg="legend" class="buyEgg">КУПИТЬ · 3000</button></div>
+    </div>
+  </section>
+
+  <section id="petsModal" class="modal panel">
+    <div class="modalHeader"><div><h2>Мои питомцы</h2><div class="modalSub">Можно экипировать до 3 питомцев одновременно.</div></div><button id="closePets" class="secondary">✕</button></div>
+    <div id="petInventory"></div>
+  </section>
+
+  <section id="settingsPanel" class="panel">
+    <h2>Настройки</h2>
+    <label for="serverSetting" class="modalSub">Адрес WebSocket-сервера</label>
+    <input id="serverSetting" value="" placeholder="Автоматически по адресу сайта">
+    <button id="saveSettings">СОХРАНИТЬ</button>
+    <button id="closeSettings" class="secondary">НАЗАД</button>
+  </section>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+const $ = selector => document.querySelector(selector);
+const canvas = $("#world");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1d2938);
+scene.fog = new THREE.Fog(0x1d2938, 35, 100);
+const camera = new THREE.PerspectiveCamera(58, 1, .1, 150);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x526079, 1.9));
+const sun = new THREE.DirectionalLight(0xfff4df, 2.1);
+sun.position.set(-12, 20, 12);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -45; sun.shadow.camera.right = 45;
+sun.shadow.camera.top = 45; sun.shadow.camera.bottom = -45;
+scene.add(sun);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(110, 110), new THREE.MeshStandardMaterial({ color: 0x344155, roughness: .96 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -.1; ground.receiveShadow = true; scene.add(ground);
+const grid = new THREE.GridHelper(100, 100, 0x66748b, 0x445167); grid.position.y = -.08; scene.add(grid);
+const plaza = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, .18, 64), new THREE.MeshStandardMaterial({ color: 0x4a5a72, roughness: .8 }));
+plaza.position.set(0, -.02, 0); plaza.receiveShadow = true; scene.add(plaza);
+
+const zoneData = [
+  { id: "starter", name: "СТАРТОВАЯ", x: 0, z: 0, color: 0x8a74ff, ground: 0x475576, station: "ГАНТЕЛИ", power: "+1", requirement: "Открыта сразу" },
+  { id: "forest", name: "ЛЕСНОЙ ЗАЛ", x: 22, z: 0, color: 0x57c58c, ground: 0x315d51, station: "СКАМЬЯ", power: "+5", requirement: "100 силы" },
+  { id: "volcano", name: "ВУЛКАН", x: -22, z: 0, color: 0xff875b, ground: 0x68443f, station: "ТЯЖЁЛЫЙ ЖИМ", power: "+15", requirement: "1000 силы или 1 rebirth" },
+  { id: "crystal", name: "КРИСТАЛЬНЫЙ ЗАЛ", x: 0, z: 22, color: 0x61c8ec, ground: 0x315a70, station: "КРИСТАЛЛ", power: "+50", requirement: "10000 силы или 2 rebirth" }
+];
+const stationMeshes = new Map();
+
+function makeLabel(text, color = "#fff") {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 128;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "rgba(11,16,27,.82)"; ctx.strokeStyle = "rgba(255,255,255,.24)"; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.roundRect(8, 8, 496, 112, 24); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.font = "900 42px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(text, 256, 64, 460);
+  const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+  sprite.scale.set(6.2, 1.55, 1); return sprite;
+}
+
+function makeStationProp(zone) {
+  const group = new THREE.Group();
+  const metal = new THREE.MeshStandardMaterial({ color: 0x303b4d, metalness: .55, roughness: .35 });
+  const accent = new THREE.MeshStandardMaterial({ color: zone.color, metalness: .18, roughness: .42, emissive: zone.color, emissiveIntensity: .12 });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(3.6, .38, 2.8), metal); base.position.y = .22; base.castShadow = true; base.receiveShadow = true; group.add(base);
+  const post = new THREE.Mesh(new THREE.BoxGeometry(.28, 1.65, .28), accent); post.position.set(0, 1.15, -.82); post.castShadow = true; group.add(post);
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, 3.6, 16), metal); bar.rotation.z = Math.PI / 2; bar.position.set(0, 1.78, -.82); bar.castShadow = true; group.add(bar);
+  for (const side of [-1, 1]) {
+    const weight = new THREE.Mesh(new THREE.CylinderGeometry(.48, .48, .24, 20), accent);
+    weight.rotation.z = Math.PI / 2; weight.position.set(side * 1.42, 1.78, -.82); weight.castShadow = true; group.add(weight);
+  }
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.35, .08, 8, 44), accent); ring.rotation.x = Math.PI / 2; ring.position.y = .1; group.add(ring);
+  group.add(makeLabel(`${zone.station}  ${zone.power}`, "#ffffff"));
+  group.children[group.children.length - 1].position.set(0, 3.05, 0);
+  return group;
+}
+
+for (const zone of zoneData) {
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, .22, 48), new THREE.MeshStandardMaterial({ color: zone.ground, roughness: .85 }));
+  pad.position.set(zone.x, -.01, zone.z); pad.receiveShadow = true; pad.castShadow = true; scene.add(pad);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(8, .16, 10, 64), new THREE.MeshStandardMaterial({ color: zone.color, emissive: zone.color, emissiveIntensity: .16 }));
+  ring.rotation.x = Math.PI / 2; ring.position.set(zone.x, .15, zone.z); scene.add(ring);
+  const title = makeLabel(zone.name, `#${zone.color.toString(16).padStart(6, "0")}`); title.position.set(zone.x, 5.0, zone.z - 6.0); scene.add(title);
+  const station = makeStationProp(zone); station.position.set(zone.x, 0, zone.z); scene.add(station); stationMeshes.set(zone.id, station);
+  // Decorative pillars make each gym area easier to recognise from a distance.
+  for (const angle of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(.26, .34, 2.1, 10), new THREE.MeshStandardMaterial({ color: zone.color, metalness: .2, roughness: .5 }));
+    pillar.position.set(zone.x + Math.cos(angle) * 7.2, 1.0, zone.z + Math.sin(angle) * 7.2); pillar.castShadow = true; scene.add(pillar);
+  }
+}
+
+// A few low obstacles and lamps decorate the central training plaza.
+for (let i = 0; i < 12; i++) {
+  const angle = i / 12 * Math.PI * 2;
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(.12, .18, 1.15, 8), new THREE.MeshStandardMaterial({ color: 0x8e80d3, emissive: 0x4b397d, emissiveIntensity: .3 }));
+  post.position.set(Math.cos(angle) * 9.7, .55, Math.sin(angle) * 9.7); post.castShadow = true; scene.add(post);
+}
+
+let ws = null, selfId = null, connected = false;
+let stats = { strength: 0, coins: 0, rebirths: 0, xp: 0, level: 1, upgradeLevel: 0, petBoost: 1, pets: [] };
+let players = new Map(), avatars = new Map();
+const local = { x: 0, z: 5, y: 0, yaw: 0, vy: 0, grounded: true };
+const keys = new Set(); const stickInput = { x: 0, z: 0 };
+const speed = 6.2, jumpVelocity = 7.1, gravity = 19;
+let lastFrame = performance.now(), lastSend = 0, toastTimeout = null;
+let avatarTemplate = null;
+
+function makeProceduralAvatar(color = 0x8d75ff) {
+  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+  const shirt = new THREE.MeshStandardMaterial({ color, roughness: .68 });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xe0ad8a, roughness: .8 });
+  const pants = new THREE.MeshStandardMaterial({ color: 0x202a3b, roughness: .85 });
+  const sphere = (w, h, d, material, x, y, z) => {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), material);
+    mesh.scale.set(w, h, d); mesh.position.set(x, y, z); mesh.castShadow = true; body.add(mesh); return mesh;
+  };
+  const limb = (a, b, radius, material) => {
+    const vector = new THREE.Vector3().subVectors(b, a);
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, vector.length(), 12), material);
+    mesh.position.copy(a).add(b).multiplyScalar(.5); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vector.normalize()); mesh.castShadow = true; body.add(mesh); return mesh;
+  };
+  sphere(.48, .34, .27, shirt, 0, 1.36, 0); sphere(.34, .48, .23, shirt, 0, .91, 0);
+  sphere(.25, .25, .24, skin, 0, 1.83, 0); sphere(.16, .08, .245, pants, 0, 1.9, 0);
+  limb(new THREE.Vector3(-.25, 1.35, 0), new THREE.Vector3(-.38, .82, 0), .105, skin);
+  limb(new THREE.Vector3(.25, 1.35, 0), new THREE.Vector3(.38, .82, 0), .105, skin);
+  limb(new THREE.Vector3(-.16, .58, 0), new THREE.Vector3(-.18, .12, 0), .13, pants);
+  limb(new THREE.Vector3(.16, .58, 0), new THREE.Vector3(.18, .12, 0), .13, pants);
+  sphere(.14, .08, .2, pants, -.18, .08, .03); sphere(.14, .08, .2, pants, .18, .08, .03);
+  const nameCanvas = document.createElement("canvas"); nameCanvas.width = 512; nameCanvas.height = 96;
+  const ctx = nameCanvas.getContext("2d"); const texture = new THREE.CanvasTexture(nameCanvas);
+  const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+  label.scale.set(2.2, .42, 1); label.position.y = 2.25; root.add(label);
+  return { root, body, label, nameCanvas, ctx, texture, phase: Math.random() * 6, usesModel: false };
+}
+
+function applyAvatarModel(avatar) {
+  if (!avatarTemplate || avatar.usesModel) return;
+  if (avatar.body) {
+    avatar.root.remove(avatar.body);
+    avatar.body.traverse(object => {
+      if (object.geometry) object.geometry.dispose();
+      if (object.material) {
+        if (Array.isArray(object.material)) object.material.forEach(material => material.dispose());
+        else object.material.dispose();
+      }
+    });
+  }
+  const model = avatarTemplate.clone(true);
+  model.rotation.x = -Math.PI / 2; model.scale.setScalar(.7);
+  // Clone resources so removing one player's avatar cannot dispose another player's shared GLB materials.
+  model.traverse(object => {
+    if (object.isMesh) {
+      object.geometry = object.geometry.clone();
+      object.material = Array.isArray(object.material) ? object.material.map(material => material.clone()) : object.material.clone();
+      object.castShadow = true; object.receiveShadow = true;
+    }
+  });
+  avatar.root.add(model); avatar.body = model; avatar.usesModel = true;
+}
+
+const avatarLoader = new GLTFLoader();
+avatarLoader.load(new URL("./assets/player-base.glb", location.href).href,
+  gltf => { avatarTemplate = gltf.scene; for (const avatar of avatars.values()) applyAvatarModel(avatar); },
+  undefined,
+  error => console.warn("GLB-модель не загрузилась; используется запасная модель.", error)
+);
+
+function setAvatarName(avatar, name) {
+  const safeName = String(name || "Player").slice(0, 18);
+  avatar.ctx.clearRect(0, 0, 512, 96); avatar.ctx.fillStyle = "#fff"; avatar.ctx.strokeStyle = "#111827";
+  avatar.ctx.lineWidth = 8; avatar.ctx.font = "bold 48px Arial"; avatar.ctx.textAlign = "center";
+  avatar.ctx.strokeText(safeName, 256, 62); avatar.ctx.fillText(safeName, 256, 62); avatar.texture.needsUpdate = true;
+}
+function hash(value) { let out = 0; for (let i = 0; i < value.length; i++) out = (out * 31 + value.charCodeAt(i)) | 0; return Math.abs(out); }
+function buildAvatar(id, player) {
+  const color = id === selfId ? 0x9c83ff : new THREE.Color().setHSL((hash(id) % 360) / 360, .62, .58);
+  const avatar = makeProceduralAvatar(color); setAvatarName(avatar, player.name); scene.add(avatar.root);
+  avatars.set(id, avatar); applyAvatarModel(avatar); return avatar;
+}
+function removeAvatar(id) {
+  const avatar = avatars.get(id); if (!avatar) return;
+  scene.remove(avatar.root);
+  avatar.root.traverse(object => {
+    if (object.geometry) object.geometry.dispose();
+    if (object.material) {
+      if (Array.isArray(object.material)) object.material.forEach(material => material.dispose());
+      else object.material.dispose();
+    }
+  });
+  avatars.delete(id);
+}
+function updatePlayer(player, immediate = false) {
+  if (!player || !player.id) return;
+  players.set(player.id, player);
+  let avatar = avatars.get(player.id); if (!avatar) avatar = buildAvatar(player.id, player);
+  setAvatarName(avatar, player.name);
+  avatar.target = { x: Number(player.x) || 0, z: Number(player.z) || 0, y: Number(player.y) || 0, yaw: Number(player.yaw) || 0 };
+  if (immediate) { avatar.root.position.set(avatar.target.x, avatar.target.y, avatar.target.z); avatar.root.rotation.y = avatar.target.yaw; }
+}
+function rebuildAll(list) {
+  const keep = new Set();
+  for (const player of list) { keep.add(player.id); updatePlayer(player, true); }
+  for (const id of [...avatars.keys()]) if (!keep.has(id)) removeAvatar(id);
+  players = new Map(list.map(player => [player.id, player]));
+  renderHud();
+}
+function setStatus(message, error = false) {
+  $("#connection").textContent = message; $("#connection").style.color = error ? "#ff9292" : "#9ee6a0";
+}
+function showToast(message) {
+  const toast = $("#toast"); toast.textContent = message; toast.classList.add("show");
+  clearTimeout(toastTimeout); toastTimeout = setTimeout(() => toast.classList.remove("show"), 2300);
+}
+function getLevelFromXp(xp) { return Math.floor(Math.sqrt(Math.max(0, Number(xp) || 0) / 100)) + 1; }
+function renderHud() {
+  $("#strength").textContent = Math.floor(stats.strength || 0).toLocaleString("ru-RU");
+  $("#coins").textContent = Math.floor(stats.coins || 0).toLocaleString("ru-RU");
+  $("#rebirths").textContent = stats.rebirths || 0;
+  $("#petBoost").textContent = Number(stats.petBoost || 1).toFixed(2);
+  const level = Number(stats.level) || getLevelFromXp(stats.xp); const xp = Number(stats.xp) || 0;
+  const from = (level - 1) ** 2 * 100, to = level ** 2 * 100;
+  $("#level").textContent = level; $("#xpText").textContent = `${Math.floor(xp - from)} / ${to - from} XP`;
+  $("#xpFill").style.width = `${Math.max(0, Math.min(100, (xp - from) / Math.max(1, to - from) * 100))}%`;
+  $("#online").textContent = `Игроков онлайн: ${players.size}`;
+  const zone = zoneData.find(item => item.id === currentZoneId()) || zoneData[0];
+  $("#zoneInfo").textContent = `Зона: ${zone.name}`;
+  $("#upgradeDescription").textContent = `Уровень ${stats.upgradeLevel || 0}. +25% к силе за тренировку. Следующее улучшение усиливает каждое занятие.`;
+  renderPets(); renderTrainButton();
+}
+function showMenu() { $("#mainMenu").style.display = "flex"; $("#gameHud").style.display = "none"; closeModals(); }
+function showGame() { $("#mainMenu").style.display = "none"; $("#gameHud").style.display = "flex"; }
+function send(type, data = {}) { if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type, ...data })); }
+function getServerAddress() {
+  const configured = $("#serverAddress").value.trim(); if (configured) return configured;
+  if (location.host) return (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
+  return "ws://localhost:8080";
+}
+function connect() {
+  if (ws) { ws.onclose = null; ws.close(); }
+  for (const id of [...avatars.keys()]) removeAvatar(id);
+  const address = getServerAddress(); setStatus(`Подключаемся: ${address}`);
+  try { ws = new WebSocket(address); } catch (error) { setStatus(`Ошибка адреса: ${error.message}`, true); return; }
+  ws.onopen = () => {
+    let id = localStorage.getItem("ml-player-id");
+    if (!id) { id = "p_" + crypto.randomUUID(); localStorage.setItem("ml-player-id", id); }
+    selfId = id;
+    ws.send(JSON.stringify({ type: "join", playerId: id, name: $("#playerName").value }));
+  };
+  ws.onmessage = event => {
+    let message; try { message = JSON.parse(event.data); } catch { return; }
+    if (message.type === "joined") {
+      selfId = message.player?.id || selfId;
+      if (selfId) localStorage.setItem("ml-player-id", selfId);
+      stats = message.player || stats; local.x = Number(message.player?.x) || 0; local.z = Number(message.player?.z) || 5;
+      rebuildAll(message.players || []); connected = true; setStatus("Подключено к серверу"); showGame(); renderHud();
+    } else if (message.type === "stats") {
+      stats = message.player || stats; renderHud();
+    } else if (message.type === "worldState") {
+      rebuildAll(message.players || []);
+      const me = (message.players || []).find(player => player.id === selfId);
+      if (me) { stats = { ...stats, ...me }; renderHud(); }
+    } else if (["playerJoined", "playerUpdated", "playerMoved"].includes(message.type)) {
+      updatePlayer(message.player, message.type !== "playerMoved");
+      if (message.player?.id === selfId) stats = { ...stats, ...message.player };
+      renderHud();
+    } else if (message.type === "playerLeft") {
+      players.delete(message.id); removeAvatar(message.id); renderHud();
+    } else if (message.type === "petHatched") {
+      const pet = message.pet; showToast(`Получен питомец: ${pet?.icon || "🐾"} ${pet?.name || "Питомец"} · ${pet?.rarity || ""} · ×${Number(pet?.bonus || 1).toFixed(2)}`);
+    } else if (message.type === "error") {
+      showToast(message.message || "Не удалось выполнить действие");
+    }
+  };
+  ws.onerror = () => setStatus("Не удалось подключиться. Проверь адрес сервера.", true);
+  ws.onclose = () => { connected = false; showMenu(); setStatus("Соединение закрыто", true); };
+}
+
+function nearestStation() {
+  let nearest = zoneData[0], distance = Infinity;
+  for (const zone of zoneData) {
+    const d = Math.hypot(local.x - zone.x, local.z - zone.z);
+    if (d < distance) { nearest = zone; distance = d; }
+  }
+  return { zone: nearest, distance };
+}
+function currentZoneId() { return nearestStation().zone.id; }
+function renderTrainButton() {
+  const nearest = nearestStation(); const button = $("#train");
+  const isClose = nearest.distance <= 6.5;
+  const unlocked = nearest.zone.id === "starter" ||
+    (nearest.zone.id === "forest" && (stats.strength >= 100 || stats.rebirths >= 1)) ||
+    (nearest.zone.id === "volcano" && (stats.strength >= 1000 || stats.rebirths >= 1)) ||
+    (nearest.zone.id === "crystal" && (stats.strength >= 10000 || stats.rebirths >= 2));
+  if (!isClose) button.textContent = `ПОДОЙДИ К ${nearest.zone.station}`;
+  else if (!unlocked) button.textContent = `ЗАКРЫТО · ${nearest.zone.requirement}`;
+  else button.textContent = `ТРЕНИРОВКА ${nearest.zone.power}`;
+  button.disabled = !connected || !isClose || !unlocked;
+}
+function getEggUnlock(egg) {
+  if (egg === "basic") return true;
+  if (egg === "forest") return stats.strength >= 100 || stats.rebirths >= 1;
+  return stats.strength >= 1000 || stats.rebirths >= 1;
+}
+function renderPets() {
+  const container = $("#petInventory"); const pets = Array.isArray(stats.pets) ? stats.pets : [];
+  if (!pets.length) { container.innerHTML = '<div class="shopItem" style="grid-column:1/-1"><strong>Пока нет питомцев</strong><p>Открой магазин и купи яйцо, чтобы получить первого помощника.</p></div>'; }
+  else {
+    container.innerHTML = pets.map(pet => `
+      <div class="petItem">
+        <span class="petIcon">${escapeHtml(pet.icon || "🐾")}</span>
+        <strong>${escapeHtml(pet.name)}</strong>
+        <p>${escapeHtml(pet.rarity || "") } · бонус ×${Number(pet.bonus || 1).toFixed(2)}<br>${pet.equipped ? "Экипирован" : "В инвентаре"}</p>
+        <button class="${pet.equipped ? "secondary" : ""}" data-pet="${escapeHtml(pet.id)}">${pet.equipped ? "СНЯТЬ" : "ЭКИПИРОВАТЬ"}</button>
+      </div>`).join("");
+  }
+  container.querySelectorAll("[data-pet]").forEach(button => button.addEventListener("click", () => send("togglePet", { petId: button.dataset.pet })));
+  document.querySelectorAll(".buyEgg").forEach(button => {
+    const egg = button.dataset.egg; button.disabled = !connected || !getEggUnlock(egg);
+    if (!getEggUnlock(egg)) button.textContent = "СНАЧАЛА ОТКРОЙ ЗОНУ";
+  });
+  const upgradeCost = Math.floor(100 * Math.pow(1.7, stats.upgradeLevel || 0));
+  $("#buyUpgrade").textContent = (stats.upgradeLevel || 0) >= 30 ? "МАКСИМУМ" : `УЛУЧШИТЬ · ${upgradeCost}`;
+  $("#buyUpgrade").disabled = !connected || (stats.upgradeLevel || 0) >= 30 || stats.coins < upgradeCost;
+}
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+}
+function openModal(id) { closeModals(); $(id).style.display = "block"; }
+function closeModals() { $("#shopModal").style.display = "none"; $("#petsModal").style.display = "none"; $("#settingsPanel").style.display = "none"; }
+
+function getMovementInput() {
+  let x = 0, z = 0;
+  if (keys.has("KeyA") || keys.has("ArrowLeft")) x -= 1;
+  if (keys.has("KeyD") || keys.has("ArrowRight")) x += 1;
+  if (keys.has("KeyW") || keys.has("ArrowUp")) z -= 1;
+  if (keys.has("KeyS") || keys.has("ArrowDown")) z += 1;
+  x += stickInput.x; z += stickInput.z;
+  const length = Math.hypot(x, z); if (length > 1) { x /= length; z /= length; }
+  return { x, z };
+}
+function jump() {
+  if (connected && local.grounded) { local.vy = jumpVelocity; local.grounded = false; send("jump", { jumping: true }); }
+}
+window.addEventListener("keydown", event => {
+  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
+  keys.add(event.code); if (event.code === "Space" && !event.repeat) jump();
+});
+window.addEventListener("keyup", event => keys.delete(event.code));
+window.addEventListener("blur", () => keys.clear());
+
+const stickBase = $("#stickBase"), stickKnob = $("#stickKnob"); let stickPointer = null, stickCenter = null;
+function updateStick(event) {
+  if (!stickCenter) return;
+  let dx = event.clientX - stickCenter.x, dy = event.clientY - stickCenter.y; const max = 42, length = Math.hypot(dx, dy);
+  if (length > max) { dx = dx / length * max; dy = dy / length * max; }
+  stickKnob.style.transform = `translate(${dx}px,${dy}px)`; stickInput.x = dx / max; stickInput.z = dy / max;
+}
+stickBase.addEventListener("pointerdown", event => {
+  stickPointer = event.pointerId; const rect = stickBase.getBoundingClientRect();
+  stickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  stickBase.setPointerCapture(event.pointerId); updateStick(event);
+});
+stickBase.addEventListener("pointermove", event => { if (event.pointerId === stickPointer) updateStick(event); });
+function releaseStick(event) {
+  if (event.pointerId !== stickPointer) return;
+  stickPointer = null; stickCenter = null; stickInput.x = 0; stickInput.z = 0; stickKnob.style.transform = "translate(0,0)";
+}
+stickBase.addEventListener("pointerup", releaseStick); stickBase.addEventListener("pointercancel", releaseStick);
+$("#jumpButton").addEventListener("pointerdown", event => { event.preventDefault(); jump(); });
+
+function updateMovement(dt) {
+  if (!connected) return;
+  const input = getMovementInput();
+  local.x = THREE.MathUtils.clamp(local.x + input.x * speed * dt, -47, 47);
+  local.z = THREE.MathUtils.clamp(local.z + input.z * speed * dt, -47, 47);
+  if (Math.hypot(input.x, input.z) > .08) local.yaw = Math.atan2(input.x, input.z);
+  if (!local.grounded) {
+    local.vy -= gravity * dt; local.y += local.vy * dt;
+    if (local.y <= 0) { local.y = 0; local.vy = 0; local.grounded = true; }
+  }
+  const avatar = avatars.get(selfId);
+  if (avatar) { avatar.root.position.set(local.x, local.y, local.z); avatar.root.rotation.y = local.yaw; }
+  const now = performance.now();
+  if (now - lastSend > 66) { lastSend = now; send("move", { x: local.x, z: local.z, y: local.y, yaw: local.yaw, jumping: !local.grounded }); }
+  renderTrainButton();
+}
+function animateAvatars(dt) {
+  for (const [id, avatar] of avatars) {
+    if (id !== selfId && avatar.target) {
+      const target = avatar.target;
+      avatar.root.position.x = THREE.MathUtils.damp(avatar.root.position.x, target.x, 10, dt);
+      avatar.root.position.z = THREE.MathUtils.damp(avatar.root.position.z, target.z, 10, dt);
+      avatar.root.position.y = THREE.MathUtils.damp(avatar.root.position.y, target.y, 12, dt);
+      const delta = ((target.yaw - avatar.root.rotation.y + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      avatar.root.rotation.y += delta * Math.min(1, dt * 10);
+    }
+    const moving = id === selfId ? Math.hypot(getMovementInput().x, getMovementInput().z) > .08 :
+      avatar.target && Math.hypot(avatar.root.position.x - (avatar.prevX ?? avatar.root.position.x), avatar.root.position.z - (avatar.prevZ ?? avatar.root.position.z)) > .003;
+    avatar.phase += dt * (moving ? 10 : 2); avatar.body.position.y = Math.abs(Math.sin(avatar.phase)) * (moving ? .055 : .008);
+    avatar.prevX = avatar.root.position.x; avatar.prevZ = avatar.root.position.z;
+  }
+}
+function updateCamera(dt) {
+  const avatar = avatars.get(selfId); if (!avatar) return;
+  const offset = new THREE.Vector3(-Math.sin(local.yaw) * 5.3, 3.3, -Math.cos(local.yaw) * 5.3);
+  camera.position.lerp(avatar.root.position.clone().add(offset), 1 - Math.exp(-5 * dt));
+  camera.lookAt(avatar.root.position.clone().add(new THREE.Vector3(0, 1.1, 0)));
+}
+function resize() {
+  const rect = canvas.getBoundingClientRect(); renderer.setSize(rect.width, rect.height, false);
+  camera.aspect = rect.width / Math.max(1, rect.height); camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(canvas); resize();
+function loop(now) {
+  requestAnimationFrame(loop); const dt = Math.min(.05, (now - lastFrame) / 1000 || 0); lastFrame = now;
+  updateMovement(dt); animateAvatars(dt); updateCamera(dt); renderer.render(scene, camera);
+}
+requestAnimationFrame(loop);
+
+$("#playButton").onclick = connect;
+$("#train").onclick = () => { const nearest = nearestStation(); if (nearest.distance <= 6.5) send("train", { stationId: nearest.zone.id }); };
+$("#sell").onclick = () => send("sell");
+$("#rebirth").onclick = () => send("rebirth");
+$("#backToMenu").onclick = () => {
+  connected = false;
+  if (ws) { ws.onclose = null; ws.close(); ws = null; }
+  for (const id of [...avatars.keys()]) removeAvatar(id);
+  players.clear();
+  showMenu();
+  setStatus("Вы отключились от сервера");
+};
+$("#openShop").onclick = () => { renderPets(); openModal("#shopModal"); };
+$("#openPets").onclick = () => { renderPets(); openModal("#petsModal"); };
+$("#closeShop").onclick = closeModals; $("#closePets").onclick = closeModals;
+$("#buyUpgrade").onclick = () => send("buyUpgrade");
+document.querySelectorAll(".buyEgg").forEach(button => button.addEventListener("click", () => send("hatchEgg", { eggId: button.dataset.egg })));
+$("#openSettings").onclick = () => { $("#serverSetting").value = $("#serverAddress").value; openModal("#settingsPanel"); };
+$("#closeSettings").onclick = closeModals;
+$("#saveSettings").onclick = () => { $("#serverAddress").value = $("#serverSetting").value.trim(); closeModals(); };
+</script>
+</body>
+</html>
