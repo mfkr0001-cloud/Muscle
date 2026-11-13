@@ -1,9 +1,9 @@
-Muscle Legends Online — Render replacement package
+Muscle Legends Online
 
-1) Replace server/src/server.js.
-2) Add render.yaml to the repository root.
-3) Keep server/package.json unchanged.
-4) Push to GitHub, then create a Render Blueprint from the repository.
-5) Open the generated onrender.com URL.
+Full browser game source. Start the multiplayer game from server/:
+1. Install Node.js 20+.
+2. Run npm install.
+3. Run npm start.
+4. Open http://localhost:8080.
 
-See DEPLOY_RENDER.md for the full steps and limitations.
+The build includes four training zones, station rewards, levels and XP, shop upgrades, eggs, pets, rebirths, multiplayer, mobile controls, and JSON save files. Read README.md and DEPLOY_RENDER.md for details.

@@ -1,29 +1,35 @@
-# Muscle Legends Online — Render deployment
+# Render deployment
 
-This package is a replacement for the server entry point plus a Render Blueprint file.
-The current `client/index.html` is served by the Node server; its WebSocket address is selected automatically from the page URL (`wss://` on HTTPS, `ws://` on HTTP). You do not need to edit the client file.
+The repository already contains the Render Blueprint file `render.yaml`. This update keeps that file unchanged.
 
-## Files to replace/add
+## Existing Render service
 
-- Replace `server/src/server.js` with the file in this package.
-- Add `render.yaml` to the repository root (next to `README.md`, `client/`, and `server/`).
+The configured service uses:
 
-Do not replace `server/package.json`; it already contains the required `ws` dependency and `npm start` script.
+- Runtime: Node.js
+- Root directory: `server`
+- Build command: `npm install`
+- Start command: `npm start`
+- Health check: `/health`
+- Auto-deploy: enabled
 
-## Deploy
+When the updated files reach the repository's `main` branch, Render should start a new deployment automatically. Open the existing `muscle-legends-online` Web Service in Render and check that the latest deploy becomes **Live**. You do not need to create a second service or change `render.yaml`.
 
-1. Push these changes to the GitHub repository's `main` branch.
-2. In Render, choose **New → Blueprint** and connect `mfkr0001-cloud/Muscle`.
-3. Render reads `render.yaml`. Confirm creation of the `muscle-legends-online` Web Service.
-4. Wait until the deploy is **Live**.
-5. Open the service's `onrender.com` URL. The game page and WebSocket multiplayer are served from the same URL.
-6. Test `/health`; it should return JSON with `ok: true`.
+## Manual setup (only if the service has not been created yet)
 
-If you already created a separate Render Static Site for the client, use the new Web Service URL as the client/server origin instead; this package is designed for the simpler single-service setup.
+1. In Render, choose **New → Blueprint**.
+2. Connect the GitHub repository `mfkr0001-cloud/Muscle`.
+3. Let Render read the existing `render.yaml` and create the Web Service.
+4. Wait for the service status to become **Live**.
+5. Open the service URL. The game page, player model, and WebSocket connection use the same host.
+6. Open `/health`; it should return JSON containing `"ok":true`.
 
-## Important notes
+## Player saves
 
-- Render Web Services support WebSocket connections. The server binds to `0.0.0.0` and uses Render's `PORT` environment variable.
-- On Render Free, the service may spin down after inactivity and the first connection can take a little while while it wakes up.
-- The existing `players.json` file is still auto-saved, but Render's default filesystem is ephemeral. On a free service, progress can be lost when the service restarts or redeploys. For durable player progress, connect a database or use a paid persistent disk and set `DATA_DIR` to its mount path.
-- This is still a prototype: the current movement validation is basic, and player IDs are not secure account authentication.
+Player data is written to `server/data/players.json` unless `DATA_DIR` is set. The default filesystem on a free Render service is temporary, so saved progress may be lost after a restart or redeploy. For durable saves, attach persistent storage or connect a database and point `DATA_DIR` at a persistent directory.
+
+## Notes
+
+- Render Web Services support WebSocket connections; the server binds to `0.0.0.0` and uses Render's `PORT` variable.
+- The first connection can take longer if a free service has been sleeping.
+- This is still a prototype: player IDs are convenience IDs stored in the browser, not secure account authentication.
